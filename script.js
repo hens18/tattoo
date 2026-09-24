@@ -5,6 +5,8 @@
 const WORK = [
   { title: "Memorial Portrait Sleeve",       image: "assets/work/portrait-sleeve.jpg" },
   { title: "Portrait & Script",              image: "assets/work/portrait-leg.jpg" },
+  { title: "Kids Portraits",                 image: "assets/work/kids-portraits.jpg" },
+  { title: "Cameron Birth Tribute",          image: "assets/work/cameron-teddy-bear.jpg" },
   { title: "Me vs Me",                       image: "assets/work/me-vs-me.jpg" },
   { title: "Different Breed: Before", image: "assets/work/different-breed-before.jpg", focus: "60% 0%", cropBottom: true },
   { title: "Different Breed: After",  image: "assets/work/different-breed-after.jpg",  focus: "70% 0%", cropBottom: true },
@@ -18,7 +20,7 @@ const playerCaption = document.getElementById("player-caption");
 let current = 0;
 let lastFocus = null;
 
-// Build tiles. Video tiles play a muted preview on hover; photo tiles zoom slightly.
+// Build tiles. Every tile pops up on hover (CSS); video tiles also play a muted preview.
 WORK.forEach((item, i) => {
   const tile = document.createElement("button");
   tile.className = "tile";
