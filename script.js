@@ -1,61 +1,84 @@
 // Gallery of Inky Dollaz's work.
-// Add a video: drop the .mp4 (and optional poster .jpg) into assets/work/ and add an entry here.
+// Each entry is a photo ({ image }) or a video ({ video, poster? }); files live in assets/work/.
+// `focus` sets which part of a photo stays visible in the cropped tile (CSS object-position);
+// `cropBottom` hides a caption bar baked into the bottom of a photo (tile only — the viewer shows it all).
 const WORK = [
-  { title: "Custom Sleeve",     video: "assets/work/work-01.mp4", poster: "assets/work/work-01.jpg" },
-  { title: "Portrait",          video: "assets/work/work-02.mp4", poster: "assets/work/work-02.jpg" },
-  { title: "Script & Lettering",video: "assets/work/work-03.mp4", poster: "assets/work/work-03.jpg" },
-  { title: "Black & Grey",      video: "assets/work/work-04.mp4", poster: "assets/work/work-04.jpg" },
-  { title: "Chest Piece",       video: "assets/work/work-05.mp4", poster: "assets/work/work-05.jpg" },
-  { title: "Fine Line",         video: "assets/work/work-06.mp4", poster: "assets/work/work-06.jpg" },
-  { title: "Back Piece",        video: "assets/work/work-07.mp4", poster: "assets/work/work-07.jpg" },
-  { title: "Hand & Neck",       video: "assets/work/work-08.mp4", poster: "assets/work/work-08.jpg" },
+  { title: "Memorial Portrait Sleeve",       image: "assets/work/portrait-sleeve.jpg" },
+  { title: "Portrait & Script",              image: "assets/work/portrait-leg.jpg" },
+  { title: "Me vs Me",                       image: "assets/work/me-vs-me.jpg" },
+  { title: "Different Breed: Before", image: "assets/work/different-breed-before.jpg", focus: "60% 0%", cropBottom: true },
+  { title: "Different Breed: After",  image: "assets/work/different-breed-after.jpg",  focus: "70% 0%", cropBottom: true },
 ];
 
 const gallery = document.getElementById("gallery");
 const player = document.getElementById("player");
 const playerVideo = document.getElementById("player-video");
+const playerImage = document.getElementById("player-image");
 const playerCaption = document.getElementById("player-caption");
 let current = 0;
 let lastFocus = null;
 
-// Build tiles. Each tile shows a muted preview that plays on hover.
+// Build tiles. Video tiles play a muted preview on hover; photo tiles zoom slightly.
 WORK.forEach((item, i) => {
   const tile = document.createElement("button");
   tile.className = "tile";
   tile.type = "button";
-  tile.setAttribute("aria-label", `Play video: ${item.title}`);
+  tile.setAttribute("aria-label", `${item.video ? "Play video" : "View photo"}: ${item.title}`);
 
-  const preview = document.createElement("video");
-  preview.src = item.video;
-  preview.muted = true;
-  preview.loop = true;
-  preview.playsInline = true;
-  preview.preload = "metadata";
-  if (item.poster) preview.poster = item.poster;
-  preview.addEventListener("error", () => tile.classList.add("missing"));
+  let media;
+  if (item.video) {
+    media = document.createElement("video");
+    media.src = item.video;
+    media.muted = true;
+    media.loop = true;
+    media.playsInline = true;
+    media.preload = "metadata";
+    if (item.poster) media.poster = item.poster;
+    tile.addEventListener("mouseenter", () => media.play().catch(() => {}));
+    tile.addEventListener("mouseleave", () => { media.pause(); media.currentTime = 0; });
 
-  const play = document.createElement("span");
-  play.className = "tile-play";
+    const play = document.createElement("span");
+    play.className = "tile-play";
+    tile.append(media, play);
+  } else {
+    media = document.createElement("img");
+    media.src = item.image;
+    media.alt = item.title;
+    media.loading = "lazy";
+    tile.append(media);
+  }
+  if (item.focus) media.style.objectPosition = item.focus;
+  if (item.cropBottom) tile.classList.add("crop-bottom");
+  media.addEventListener("error", () => tile.classList.add("missing"));
 
   const label = document.createElement("span");
   label.className = "tile-label";
   label.textContent = item.title;
 
-  tile.append(preview, play, label);
-  tile.addEventListener("mouseenter", () => preview.play().catch(() => {}));
-  tile.addEventListener("mouseleave", () => { preview.pause(); preview.currentTime = 0; });
+  tile.append(label);
   tile.addEventListener("click", () => openPlayer(i));
   gallery.appendChild(tile);
 });
 
-// Floating player
+// Floating viewer (plays videos, shows photos)
 function show(i) {
   current = (i + WORK.length) % WORK.length;
   const item = WORK[current];
-  playerVideo.src = item.video;
-  playerVideo.poster = item.poster || "";
   playerCaption.textContent = item.title;
-  playerVideo.play().catch(() => {});
+  if (item.video) {
+    playerImage.hidden = true;
+    playerVideo.hidden = false;
+    playerVideo.src = item.video;
+    playerVideo.poster = item.poster || "";
+    playerVideo.play().catch(() => {});
+  } else {
+    playerVideo.pause();
+    playerVideo.removeAttribute("src");
+    playerVideo.hidden = true;
+    playerImage.hidden = false;
+    playerImage.src = item.image;
+    playerImage.alt = item.title;
+  }
 }
 
 function openPlayer(i) {
